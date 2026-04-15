@@ -1,0 +1,28 @@
+Classify,condition_name,condition_factor,condition_factor_p4
+Bamboo,Perennial croplands (C3 and C4),0.635,0.16259040062500002
+Bamboo and Fields,Annual croplands (C3 and C4) (0.5); Perennial croplands (C3 and C4) (0.5),0.5475,0.08985380941406249
+Bamboo and Secondary Forest,Perennial croplands (C3 and C4) (0.5); Secondary vegetation: intermediate (30-50 years) (0.5),0.745,0.308052750625
+Bare Rock,Zero_value,0.0,0.0
+Bauxite Extraction,Zero_value,0.0,0.0
+Buildings and other infrastructures,Urban,0.645,0.17307680062500003
+Closed broadleaved forest (Primary Forest),"Primary vegetation, forest and non-forest",1.0,1.0
+Disturbed broadleaved forest (Secondary Forest),Secondary vegetation (young) <30 years),0.757,0.328385156401
+Fields  and Bamboo,Annual croplands (C3 and C4) (0.5); Perennial croplands (C3 and C4) (0.5),0.5475,0.08985380941406249
+Fields and Secondary Forest,Secondary vegetation (young) <30 years) (0.5); Annual croplands (C3 and C4) (0.5),0.6085,0.13710153912006254
+Fields or Secondary Forest/Pine Plantation,Annual croplands (C3 and C4) (0.5); Perennial croplands (C3 and C4) (0.5),0.5475,0.08985380941406249
+Fields: Bare Land,Managed pasture,0.533,0.08070655992100002
+"Fields: Herbaceous crops, fallow, cultivated vegetables",Annual croplands (C3 and C4),0.46,0.044774560000000005
+"Fields: Pasture,Human disturbed, grassland",Managed pasture,0.533,0.08070655992100002
+Hardwood Plantation: Euculytus,Perennial croplands (C3 and C4),0.635,0.16259040062500002
+Hardwood Plantation: Mahoe,Perennial croplands (C3 and C4),0.635,0.16259040062500002
+Hardwood Plantation: Mahogany,Perennial croplands (C3 and C4),0.635,0.16259040062500002
+Hardwood Plantation: Mixed,Perennial croplands (C3 and C4),0.635,0.16259040062500002
+Herbaceous Wetland,"Primary vegetation, forest and non-forest",1.0,1.0
+Mangrove Forest,"Primary vegetation, forest and non-forest",1.0,1.0
+Open dry forest - Short,"Primary vegetation, forest and non-forest",1.0,1.0
+Open dry forest - Tall (Woodland/Savanna),"Primary vegetation, forest and non-forest",1.0,1.0
+"Plantation: Tree crops, shrub crops, sugar cane, banana",Perennial croplands (C3 and C4),0.635,0.16259040062500002
+Quarry,Zero_value,0.0,0.0
+Secondary Forest,Secondary vegetation: intermediate (30-50 years),0.855,0.5343975506249999
+Swamp Forest,"Primary vegetation, forest and non-forest",1.0,1.0
+Water Body,Zero_value,0.0,0.0

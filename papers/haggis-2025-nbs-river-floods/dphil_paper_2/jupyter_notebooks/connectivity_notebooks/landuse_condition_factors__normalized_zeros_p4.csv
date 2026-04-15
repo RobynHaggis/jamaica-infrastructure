@@ -1,0 +1,28 @@
+Classify,condition_name,condition_factor,condition_factor_p4
+Bamboo,Normalized (1e-08),1.000000000000000e-08,1.000000000000000e-32
+Bamboo and Fields,Normalized (1e-08),1.000000000000000e-08,1.000000000000000e-32
+Bamboo and Secondary Forest,Normalized (1e-08),1.000000000000000e-08,1.000000000000000e-32
+Bare Rock,Normalized (1e-08),1.000000000000000e-08,1.000000000000000e-32
+Bauxite Extraction,Normalized (1e-08),1.000000000000000e-08,1.000000000000000e-32
+Buildings and other infrastructures,Normalized (1e-08),1.000000000000000e-08,1.000000000000000e-32
+Closed broadleaved forest (Primary Forest),Normalized (1e-08),1.000000000000000e-08,1.000000000000000e-32
+Disturbed broadleaved forest (Secondary Forest),Normalized (1e-08),1.000000000000000e-08,1.000000000000000e-32
+Fields  and Bamboo,Normalized (1e-08),1.000000000000000e-08,1.000000000000000e-32
+Fields and Secondary Forest,Normalized (1e-08),1.000000000000000e-08,1.000000000000000e-32
+Fields or Secondary Forest/Pine Plantation,Normalized (1e-08),1.000000000000000e-08,1.000000000000000e-32
+Fields: Bare Land,Normalized (1e-08),1.000000000000000e-08,1.000000000000000e-32
+"Fields: Herbaceous crops, fallow, cultivated vegetables",Normalized (1e-08),1.000000000000000e-08,1.000000000000000e-32
+"Fields: Pasture,Human disturbed, grassland",Normalized (1e-08),1.000000000000000e-08,1.000000000000000e-32
+Hardwood Plantation: Euculytus,Normalized (1e-08),1.000000000000000e-08,1.000000000000000e-32
+Hardwood Plantation: Mahoe,Normalized (1e-08),1.000000000000000e-08,1.000000000000000e-32
+Hardwood Plantation: Mahogany,Normalized (1e-08),1.000000000000000e-08,1.000000000000000e-32
+Hardwood Plantation: Mixed,Normalized (1e-08),1.000000000000000e-08,1.000000000000000e-32
+Herbaceous Wetland,Normalized (1e-08),1.000000000000000e-08,1.000000000000000e-32
+Mangrove Forest,Normalized (1e-08),1.000000000000000e-08,1.000000000000000e-32
+Open dry forest - Short,Normalized (1e-08),1.000000000000000e-08,1.000000000000000e-32
+Open dry forest - Tall (Woodland/Savanna),Normalized (1e-08),1.000000000000000e-08,1.000000000000000e-32
+"Plantation: Tree crops, shrub crops, sugar cane, banana",Normalized (1e-08),1.000000000000000e-08,1.000000000000000e-32
+Quarry,Normalized (1e-08),1.000000000000000e-08,1.000000000000000e-32
+Secondary Forest,Normalized (1e-08),1.000000000000000e-08,1.000000000000000e-32
+Swamp Forest,Normalized (1e-08),1.000000000000000e-08,1.000000000000000e-32
+Water Body,Normalized (1e-08),1.000000000000000e-08,1.000000000000000e-32

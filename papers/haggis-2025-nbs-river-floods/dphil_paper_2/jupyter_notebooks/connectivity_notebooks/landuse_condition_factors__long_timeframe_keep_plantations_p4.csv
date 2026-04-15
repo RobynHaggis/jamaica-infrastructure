@@ -1,0 +1,28 @@
+Classify,condition_name,condition_factor,condition_factor_p4
+Bamboo,Perennial croplands (C3 and C4),0.635,0.16259040062500002
+Bamboo and Fields,Secondary vegetation: mature (50 years and more) (0.5); Perennial croplands (C3 and C4) (0.5),0.8125,0.4358062744140625
+Bamboo and Secondary Forest,Perennial croplands (C3 and C4) (0.5); Secondary vegetation: mature (50 years and more) (0.5),0.8125,0.4358062744140625
+Bare Rock,Zero_value,0.0,0.0
+Bauxite Extraction,Secondary vegetation: mature (50 years and more),0.99,0.96059601
+Buildings and other infrastructures,Urban,0.645,0.17307680062500003
+Closed broadleaved forest (Primary Forest),"Primary vegetation, forest and non-forest",1.0,1.0
+Disturbed broadleaved forest (Secondary Forest),Secondary vegetation: mature (50 years and more),0.99,0.96059601
+Fields  and Bamboo,Secondary vegetation: mature (50 years and more) (0.5); Perennial croplands (C3 and C4) (0.5),0.8125,0.4358062744140625
+Fields and Secondary Forest,Secondary vegetation: mature (50 years and more),0.99,0.96059601
+Fields or Secondary Forest/Pine Plantation,Secondary vegetation: mature (50 years and more) (0.5); Perennial croplands (C3 and C4) (0.5),0.8125,0.4358062744140625
+Fields: Bare Land,Secondary vegetation: mature (50 years and more),0.99,0.96059601
+"Fields: Herbaceous crops, fallow, cultivated vegetables",Secondary vegetation: mature (50 years and more),0.99,0.96059601
+"Fields: Pasture,Human disturbed, grassland",Secondary vegetation: mature (50 years and more),0.99,0.96059601
+Hardwood Plantation: Euculytus,Perennial croplands (C3 and C4),0.635,0.16259040062500002
+Hardwood Plantation: Mahoe,Perennial croplands (C3 and C4),0.635,0.16259040062500002
+Hardwood Plantation: Mahogany,Perennial croplands (C3 and C4),0.635,0.16259040062500002
+Hardwood Plantation: Mixed,Perennial croplands (C3 and C4),0.635,0.16259040062500002
+Herbaceous Wetland,"Primary vegetation, forest and non-forest",1.0,1.0
+Mangrove Forest,"Primary vegetation, forest and non-forest",1.0,1.0
+Open dry forest - Short,"Primary vegetation, forest and non-forest",1.0,1.0
+Open dry forest - Tall (Woodland/Savanna),"Primary vegetation, forest and non-forest",1.0,1.0
+"Plantation: Tree crops, shrub crops, sugar cane, banana",Perennial croplands (C3 and C4),0.635,0.16259040062500002
+Quarry,Secondary vegetation: mature (50 years and more),0.99,0.96059601
+Secondary Forest,Secondary vegetation: mature (50 years and more),0.99,0.96059601
+Swamp Forest,"Primary vegetation, forest and non-forest",1.0,1.0
+Water Body,Zero_value,0.0,0.0

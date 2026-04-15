@@ -1,0 +1,62 @@
+#// Keys in these dictionaries must match the "Classify" values in landuse shapefile
+#// # N.B. deliberate matching of typos and double spaces
+LANDUSE_FOREST_PROPORTION = {
+    "Bamboo": 1,
+    "Bamboo and Fields": 0.5,  # 50% Agriculture, 50% Bamboo which functions similarly to forest
+    "Bamboo and Secondary Forest": 1,  # 50% Forest, 50% bamboo
+    "Bare Rock": 0,
+    "Bauxite Extraction": 0,
+    "Buildings and other infrastructures": 0,
+    "Closed broadleaved forest (Primary Forest)": 1,
+    "Disturbed broadleaved forest (Secondary Forest)": 1,
+    "Fields  and Bamboo": 0.5,  # 50% Ag, 50% Bamboo
+    "Fields and Secondary Forest": 0.5,  # 50% Ag, 50% Forest
+    "Fields or Secondary Forest/Pine Plantation": 0.5,  # 50% Ag, 50% Secondary Forest/Pine
+    "Fields: Bare Land": 0,
+    "Fields: Herbaceous crops, fallow, cultivated vegetables": 0,
+    "Fields: Pasture,Human disturbed, grassland": 0,
+    "Hardwood Plantation: Euculytus": 1,
+    "Hardwood Plantation: Mahoe": 1,
+    "Hardwood Plantation: Mahogany": 1,
+    "Hardwood Plantation: Mixed": 1,
+    "Herbaceous Wetland": 0,
+    "Mangrove Forest": 0,
+    "Open dry forest - Short": 1,
+    "Open dry forest - Tall (Woodland/Savanna)": 1,
+    "Plantation: Tree crops, shrub crops, sugar cane, banana": 1,
+    "Quarry": 0,
+    "Secondary Forest": 1,
+    "Swamp Forest": 0,
+    "Water Body": 0,
+}
+
+
+LANDUSE_AFFORESTABLE_PROPORTION = {
+    "Bamboo": 0,
+    "Bamboo and Fields": 0.5,  # 50% Ag, 50% Bamboo 
+    "Bamboo and Secondary Forest": 0,  # 50% Forest, 50% bamboo
+    "Bare Rock": 0,
+    "Bauxite Extraction": 1,
+    "Buildings and other infrastructures": 0,
+    "Closed broadleaved forest (Primary Forest)": 0,
+    "Disturbed broadleaved forest (Secondary Forest)": 0,
+    "Fields  and Bamboo": 0.5,  # 50% Ag, 50% Bamboo
+    "Fields and Secondary Forest": 0.5,  # 50% Ag, 50% Forest
+    "Fields or Secondary Forest/Pine Plantation": 0.5,  # 50% Ag, 50% Secondary Forest/Pine
+    "Fields: Bare Land": 1,
+    "Fields: Herbaceous crops, fallow, cultivated vegetables": 1,
+    "Fields: Pasture,Human disturbed, grassland": 1,
+    "Hardwood Plantation: Euculytus": 0,
+    "Hardwood Plantation: Mahoe": 0,
+    "Hardwood Plantation: Mahogany": 0,
+    "Hardwood Plantation: Mixed": 0,
+    "Herbaceous Wetland": 0,
+    "Mangrove Forest": 0,
+    "Open dry forest - Short": 0,
+    "Open dry forest - Tall (Woodland/Savanna)": 0,
+    "Plantation: Tree crops, shrub crops, sugar cane, banana": 0,
+    "Quarry": 1,
+    "Secondary Forest": 0,
+    "Swamp Forest": 0,
+    "Water Body": 0,
+}

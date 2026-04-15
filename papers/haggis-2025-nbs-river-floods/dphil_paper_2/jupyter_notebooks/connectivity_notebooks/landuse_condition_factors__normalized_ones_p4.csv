@@ -1,0 +1,28 @@
+Classify,condition_name,condition_factor,condition_factor_p4
+Bamboo,Normalized (ones),1.0,1.0
+Bamboo and Fields,Normalized (ones),1.0,1.0
+Bamboo and Secondary Forest,Normalized (ones),1.0,1.0
+Bare Rock,Normalized (ones),1.0,1.0
+Bauxite Extraction,Normalized (ones),1.0,1.0
+Buildings and other infrastructures,Normalized (ones),1.0,1.0
+Closed broadleaved forest (Primary Forest),Normalized (ones),1.0,1.0
+Disturbed broadleaved forest (Secondary Forest),Normalized (ones),1.0,1.0
+Fields  and Bamboo,Normalized (ones),1.0,1.0
+Fields and Secondary Forest,Normalized (ones),1.0,1.0
+Fields or Secondary Forest/Pine Plantation,Normalized (ones),1.0,1.0
+Fields: Bare Land,Normalized (ones),1.0,1.0
+"Fields: Herbaceous crops, fallow, cultivated vegetables",Normalized (ones),1.0,1.0
+"Fields: Pasture,Human disturbed, grassland",Normalized (ones),1.0,1.0
+Hardwood Plantation: Euculytus,Normalized (ones),1.0,1.0
+Hardwood Plantation: Mahoe,Normalized (ones),1.0,1.0
+Hardwood Plantation: Mahogany,Normalized (ones),1.0,1.0
+Hardwood Plantation: Mixed,Normalized (ones),1.0,1.0
+Herbaceous Wetland,Normalized (ones),1.0,1.0
+Mangrove Forest,Normalized (ones),1.0,1.0
+Open dry forest - Short,Normalized (ones),1.0,1.0
+Open dry forest - Tall (Woodland/Savanna),Normalized (ones),1.0,1.0
+"Plantation: Tree crops, shrub crops, sugar cane, banana",Normalized (ones),1.0,1.0
+Quarry,Normalized (ones),1.0,1.0
+Secondary Forest,Normalized (ones),1.0,1.0
+Swamp Forest,Normalized (ones),1.0,1.0
+Water Body,Normalized (ones),1.0,1.0
