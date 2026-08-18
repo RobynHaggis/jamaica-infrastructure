@@ -1,0 +1,779 @@
+var landsat = ee.Image(ee.ImageCollection('MODIS/061/MOD09A1')
+                          .select(['sur_refl_b01', 'sur_refl_b04', 'sur_refl_b03'])
+                          .filterDate('2020-01-01','2020-12-28').median());
+                  
+
+var geometry = ee.Geometry.Rectangle([-81.5, 25, -80.5, 25.5]);
+
+
+print(landsat) //to get the collection date of the data
+
+var landsat2 = landsat.clip(geometry);
+
+var visualization = {
+  bands: ['sur_refl_b01', 'sur_refl_b04', 'sur_refl_b03'],
+  min: -100,
+  max: 2000,
+};
+
+
+Map.addLayer(landsat2,visualization, 'RGB');
+
+
+/*
+Export.image.toDrive({
+  image: landsat2,
+  description: 'Goni2020',
+  region: geometry,
+  scale: 500,
+});
+*/
+
+
+
+
+// --- Your friend’s structure, with minimal changes for Jamaica + NDVI pre/post Hurricane Melissa ---
+
+// 1) Region (Jamaica bbox)
+var geometry = ee.Geometry.Rectangle([-78.6, 17.6, -75.8, 18.7]);
+Map.centerObject(geometry, 7);
+
+// 2) Dates: Hurricane window Tue 21 Oct 2025 – Tue 4 Nov 2025
+//    Choose “pre” window before 21 Oct, and “post” window after 4 Nov.
+//    (MOD09A1 is 8-day composites, so we use short windows either side.)
+var preStart  = '2025-10-05';
+var preEnd    = '2025-10-21';   // end is exclusive in GEE
+var postStart = '2025-11-05';
+var postEnd   = '2025-11-21';
+
+// 3) Load + composite (same as her code, just with different dates)
+// PRE
+var pre = ee.Image(ee.ImageCollection('MODIS/061/MOD09A1')
+  .select(['sur_refl_b01', 'sur_refl_b02']) // Red, NIR
+  .filterDate(preStart, preEnd)
+  .median());
+
+var pre2 = pre.clip(geometry);
+var ndviPre = pre2.normalizedDifference(['sur_refl_b02', 'sur_refl_b01']).rename('NDVI');
+
+// POST
+var post = ee.Image(ee.ImageCollection('MODIS/061/MOD09A1')
+  .select(['sur_refl_b01', 'sur_refl_b02']) // Red, NIR
+  .filterDate(postStart, postEnd)
+  .median());
+
+var post2 = post.clip(geometry);
+var ndviPost = post2.normalizedDifference(['sur_refl_b02', 'sur_refl_b01']).rename('NDVI');
+
+// Optional: difference (post - pre)
+var dNdvi = ndviPost.subtract(ndviPre).rename('dNDVI');
+
+// Print to check what you’re working with
+print('PRE composite image:', pre);
+print('POST composite image:', post);
+
+// 4) Visualisation (add palettes so it’s not just black/white)
+var ndviVis = {
+  min: -0.2,
+  max: 0.9,
+  palette: ['8c510a','d8b365','f6e8c3','c7eae5','5ab4ac','01665e']
+};
+
+var dVis = {
+  min: -0.4,
+  max: 0.4,
+  palette: ['b2182b','fddbc7','ffffff','d1e5f0','2166ac']
+};
+
+// 5) Map layers
+Map.addLayer(ndviPre, ndviVis, 'NDVI pre (2025-10-05 to 2025-10-21)');
+Map.addLayer(ndviPost, ndviVis, 'NDVI post (2025-11-05 to 2025-11-21)');
+Map.addLayer(dNdvi, dVis, 'dNDVI (post - pre)');
+
+/*
+// 6) Exports (optional) — export NDVI images (not the reflectance)
+Export.image.toDrive({
+  image: ndviPre,
+  description: 'Jamaica_NDVI_pre_Melissa_MOD09A1',
+  region: geometry,
+  scale: 500,
+  maxPixels: 1e13
+});
+
+Export.image.toDrive({
+  image: ndviPost,
+  description: 'Jamaica_NDVI_post_Melissa_MOD09A1',
+  region: geometry,
+  scale: 500,
+  maxPixels: 1e13
+});
+
+Export.image.toDrive({
+  image: dNdvi,
+  description: 'Jamaica_dNDVI_post_minus_pre_Melissa_MOD09A1',
+  region: geometry,
+  scale: 500,
+  maxPixels: 1e13
+});
+*/
+
+
+
+
+
+
+
+
+
+// --- Friend-style MODIS composite, now using the 16-day Vegetation Index products:
+//     Terra: MOD13Q1  (250 m)  + Aqua: MYD13Q1 (250 m)
+//     For Jamaica + NDVI pre/post Hurricane Melissa, with QA cloud masking.
+//     (No stats in this cell.)
+
+// 1) Region (Jamaica bbox)
+var geometry = ee.Geometry.Rectangle([-78.6, 17.6, -75.8, 18.7]);
+Map.centerObject(geometry, 7);
+
+// 2) Dates: Hurricane window Tue 21 Oct 2025 – Tue 4 Nov 2025
+//    Use short windows either side (same as before)
+var preStart  = '2025-10-05';
+var preEnd    = '2025-10-21';   // end is exclusive in GEE
+var postStart = '2025-11-05';
+var postEnd   = '2025-11-21';
+
+// 3) Cloud mask for MOD13Q1 / MYD13Q1 using SummaryQA
+// SummaryQA: 0 = Good, 1 = Marginal, 2 = Snow/Ice, 3 = Cloudy
+function maskMOD13Q1(img) {
+  var qa = img.select('SummaryQA');
+  var mask = qa.lte(1); // keep good + marginal
+  return img.updateMask(mask);
+}
+
+// 4) Build one combined collection (Terra + Aqua) and composite NDVI
+var vi = ee.ImageCollection('MODIS/061/MOD13Q1')
+  .merge(ee.ImageCollection('MODIS/061/MYD13Q1'));
+
+// PRE NDVI composite
+var ndviPre = ee.Image(vi
+  .filterDate(preStart, preEnd)
+  .select(['NDVI', 'SummaryQA'])
+  .map(maskMOD13Q1)
+  .select('NDVI')
+  .median())
+  .multiply(0.0001)   // MODIS VI scaling
+  .clip(geometry)
+  .rename('NDVI');
+
+// POST NDVI composite
+var ndviPost = ee.Image(vi
+  .filterDate(postStart, postEnd)
+  .select(['NDVI', 'SummaryQA'])
+  .map(maskMOD13Q1)
+  .select('NDVI')
+  .median())
+  .multiply(0.0001)
+  .clip(geometry)
+  .rename('NDVI');
+
+// Difference (post - pre)
+var dNdvi = ndviPost.subtract(ndviPre).rename('dNDVI');
+
+// Optional: print the image objects (single-argument prints)
+print(ndviPre);
+print(ndviPost);
+
+// 5) Visualisation (NDVI + change)
+var ndviVis = {
+  min: -0.2,
+  max: 0.9,
+  palette: ['8c510a','d8b365','f6e8c3','c7eae5','5ab4ac','01665e']
+};
+
+var dVis = {
+  min: -0.4,
+  max: 0.4,
+  palette: ['b2182b','fddbc7','ffffff','d1e5f0','2166ac']
+};
+
+// 6) Map layers
+Map.addLayer(ndviPre, ndviVis, 'NDVI pre (MOD13Q1+MYD13Q1, QA-masked)');
+Map.addLayer(ndviPost, ndviVis, 'NDVI post (MOD13Q1+MYD13Q1, QA-masked)');
+Map.addLayer(dNdvi, dVis, 'dNDVI (post - pre)');
+
+/*
+// Optional export blocks (uncomment if/when you want)
+Export.image.toDrive({
+  image: ndviPre,
+  description: 'Jamaica_NDVI_pre_Melissa_MOD13Q1_MYD13Q1_QA',
+  region: geometry,
+  scale: 250,
+  maxPixels: 1e13
+});
+
+Export.image.toDrive({
+  image: ndviPost,
+  description: 'Jamaica_NDVI_post_Melissa_MOD13Q1_MYD13Q1_QA',
+  region: geometry,
+  scale: 250,
+  maxPixels: 1e13
+});
+
+Export.image.toDrive({
+  image: dNdvi,
+  description: 'Jamaica_dNDVI_post_minus_pre_MOD13Q1_MYD13Q1_QA',
+  region: geometry,
+  scale: 250,
+  maxPixels: 1e13
+});
+*/
+
+
+
+
+
+
+
+
+
+
+
+// ==========================================================
+// HLS quick-look debug that WILL render
+// Dataset: NASA/HLS/HLSS30/v002
+// ==========================================================
+
+var geometry = ee.Geometry.Rectangle([-78.6, 17.6, -75.8, 18.7]);
+Map.centerObject(geometry, 8);
+
+var start = '2025-10-01';
+var end   = '2025-10-31';
+
+var hls = ee.ImageCollection('NASA/HLS/HLSS30/v002')
+  .filterDate(start, end)
+  .filterBounds(geometry);
+
+print(hls.size());             // number of scenes
+print(ee.Image(hls.first()));  // inspect first image (bands/props)
+
+// RGB bands
+var rgbBands = ['B4','B3','B2'];
+
+// Fixed vis stretch (HLS reflectance is typically scaled ~0–10000)
+var rgbVis = {
+  bands: rgbBands,
+  min: 0,
+  max: 8000,
+  gamma: 1.2
+};
+
+// --- Masks (HLS Fmask is a BITMASK)
+// bit 1 cloud, bit 2 adjacent, bit 3 shadow, bit 4 snow, bit 5 water
+function maskCloudOnly(img) {
+  var f = img.select('Fmask');
+  var notCloud = f.bitwiseAnd(1 << 1).eq(0);
+  // also remove fill/invalid values so they don’t draw as black
+  var valid = img.select('B2').gt(0).and(img.select('B3').gt(0)).and(img.select('B4').gt(0));
+  return img.updateMask(notCloud.and(valid));
+}
+
+function maskCloudShadow(img) {
+  var f = img.select('Fmask');
+  var notCloud  = f.bitwiseAnd(1 << 1).eq(0);
+  var notShadow = f.bitwiseAnd(1 << 3).eq(0);
+  var valid = img.select('B2').gt(0).and(img.select('B3').gt(0)).and(img.select('B4').gt(0));
+  return img.updateMask(notCloud.and(notShadow).and(valid));
+}
+
+// --- Composites
+var mosaic_unmasked = hls.select(rgbBands).mosaic().clip(geometry);
+var median_unmasked = hls.select(rgbBands).median().clip(geometry);
+
+var median_cloudOnly   = hls.map(maskCloudOnly).select(rgbBands).median().clip(geometry);
+var median_cloudShadow = hls.map(maskCloudShadow).select(rgbBands).median().clip(geometry);
+
+// --- Layers (these should not error)
+Map.addLayer(mosaic_unmasked, rgbVis, 'HLS RGB mosaic (unmasked)');
+Map.addLayer(median_unmasked, rgbVis, 'HLS RGB median (unmasked)');
+Map.addLayer(median_cloudOnly, rgbVis, 'HLS RGB median (cloud-only masked)');
+Map.addLayer(median_cloudShadow, rgbVis, 'HLS RGB median (cloud+shadow masked)');
+
+// --- Optional: show Fmask mosaic to see what’s being flagged
+Map.addLayer(hls.select('Fmask').mosaic().clip(geometry), {}, 'HLS Fmask (mosaic)');
+
+// --- Optional: check if masking left any valid pixels
+var validCount = median_cloudShadow.select('B4').reduceRegion({
+  reducer: ee.Reducer.count(),
+  geometry: geometry,
+  scale: 30,
+  maxPixels: 1e13,
+  bestEffort: true
+});
+print(validCount);
+
+
+// Yu's code for jamaica
+
+var landsat = ee.Image(ee.ImageCollection('MODIS/061/MOD09A1')
+                          .select(['sur_refl_b01', 'sur_refl_b04', 'sur_refl_b03'])
+                          .filterDate('2025-10-01','2025-12-01').first());
+                  
+
+var geometry = ee.Geometry.Rectangle([-78.6, 17.6, -75.8, 18.7]);
+
+
+print(landsat) //to get the collection date of the data
+
+var landsat2 = landsat.clip(geometry);
+
+var visualization = {
+  bands: ['sur_refl_b01', 'sur_refl_b04', 'sur_refl_b03'],
+  min: -100,
+  max: 2000,
+};
+
+
+Map.addLayer(landsat2,visualization, 'RGB');
+
+
+/*
+Export.image.toDrive({
+  image: landsat2,
+  description: 'Goni2020',
+  region: geometry,
+  scale: 500,
+});
+*/
+
+
+
+// Top of atmosphere:
+
+var geometry = ee.Geometry.Rectangle([-78.6, 17.6, -75.8, 18.7]);
+
+var landsat = ee.Image(
+  ee.ImageCollection('LANDSAT/LC08/C02/T1_TOA')
+    .filterBounds(geometry)
+    .filterDate('2025-10-01', '2025-12-01')
+    .first()
+).select(['B4', 'B3', 'B2']);
+
+print(landsat); // metadata incl. system:time_start
+
+var landsat2 = landsat.clip(geometry);
+
+var visualization = {
+  bands: ['B4', 'B3', 'B2'],
+  min: 0.0,
+  max: 0.3
+};
+
+var dateTaken = ee.Date(landsat.get('system:time_start'));
+print('Image taken (UTC):', dateTaken);
+print('Image ID:', landsat.id());
+
+
+Map.centerObject(geometry, 9);
+Map.addLayer(landsat2, visualization, 'RGB (L8 TOA)');
+
+// NDVI
+
+var geometry = ee.Geometry.Rectangle([-78.6, 17.6, -75.8, 18.7]);
+
+// Grab one Landsat 8 TOA image over the geometry in the date range
+var img = ee.Image(
+  ee.ImageCollection('LANDSAT/LC08/C02/T1_TOA')
+    .filterBounds(geometry)
+    .filterDate('2025-10-01', '2025-12-01')
+    .median()
+);
+
+// When was it taken?
+var dateTaken = ee.Date(img.get('system:time_start'));
+print('Image taken (UTC):', dateTaken);
+print('Image ID:', img.id());
+
+// NDVI = (NIR - Red) / (NIR + Red) = (B5 - B4) / (B5 + B4)
+var ndvi = img.normalizedDifference(['B5', 'B4']).rename('NDVI').clip(geometry);
+
+// Display
+Map.centerObject(geometry, 9);
+Map.addLayer(ndvi, {min: -1, max: 1}, 'NDVI (L8 TOA)');
+
+
+// surface reflectance
+Then surface reflectance:
+
+var geometry = ee.Geometry.Rectangle([-78.6, 17.6, -75.8, 18.7]);
+
+var img = ee.Image(
+  ee.ImageCollection('LANDSAT/LC08/C02/T1_L2')
+    .filterBounds(geometry)
+    .filterDate('2025-10-01', '2025-12-01')
+    .first()
+);
+
+var dateTaken = ee.Date(img.get('system:time_start'));
+print('Image taken (UTC):', dateTaken);
+print('Image ID:', img.id());
+
+// True-colour RGB from Surface Reflectance bands
+var srRgb = img.select(['SR_B4', 'SR_B3', 'SR_B2']).clip(geometry);
+
+// Note: SR_B* are scaled integers in Collection 2 L2.
+// For quick visualisation, use a reasonable display range:
+Map.centerObject(geometry, 9);
+Map.addLayer(srRgb, {bands: ['SR_B4','SR_B3','SR_B2'], min: 7000, max: 14000}, 'RGB (L8 SR)’);
+
+
+  // Code to use:
+
+  var geometry = ee.Geometry.Rectangle([-78.6, 17.6, -75.8, 18.7]);
+
+var imgSR = ee.Image(
+  ee.ImageCollection('LANDSAT/LC08/C02/T1_L2')
+    .filterBounds(geometry)
+    .filterDate('2025-10-01', '2025-12-01')
+    .median()
+);
+
+var dateTaken = ee.Date(imgSR.get('system:time_start'));
+print('Image taken (UTC):', dateTaken);
+print('Image ID:', imgSR.id());
+
+// NDVI from Surface Reflectance
+var ndvi = imgSR.normalizedDifference(['SR_B5', 'SR_B4'])
+  .rename('NDVI')
+  .clip(geometry);
+
+Map.centerObject(geometry, 9);
+Map.addLayer(ndvi, {min: -1, max: 1}, 'NDVI (L8 Surface Reflectance)');
+
+
+
+
+
+
+
+
+
+// ------------------------------------------------------------
+// HLS quick browser: 1 month BEFORE eventStart only
+// ------------------------------------------------------------
+
+var geometry = ee.Geometry.Rectangle([-78.6, 17.6, -75.8, 18.7]);
+
+var eventEnd = ee.Date('2025-11-04');
+
+// Two months after eventEnd
+var start = eventEnd;
+var end   = eventEnd.advance(2, 'month');
+
+print('Date window:', start, 'to', end);
+
+var cloudThresh = 30;
+
+var hls = ee.ImageCollection("NASA/HLS/HLSL30/v002")
+  .filterBounds(geometry)
+  .filterDate(start, end)
+  .filter(ee.Filter.lt('CLOUD_COVERAGE', cloudThresh))
+  .merge(
+    ee.ImageCollection("NASA/HLS/HLSS30/v002")
+      .filterBounds(geometry)
+      .filterDate(start, end)
+      .filter(ee.Filter.lt('CLOUD_COVERAGE', cloudThresh))
+  )
+  .sort('system:time_start');
+
+print('All HLS images (1 month before eventStart):', hls.size());
+
+// Filter out images with no valid pixels in ROI
+var hlsWithData = hls
+  .map(function(img) {
+    var n = img.select('B4').reduceRegion({
+      reducer: ee.Reducer.count(),
+      geometry: geometry,
+      scale: 30,
+      bestEffort: true,
+      maxPixels: 1e8
+    }).get('B4');
+    return img.set('roi_count_B4', n);
+  })
+  .filter(ee.Filter.gt('roi_count_B4', 0));
+
+print('HLS images with data in ROI:', hlsWithData.size());
+
+Map.centerObject(geometry, 9);
+
+var rgbVis = {
+  bands: ['B4', 'B3', 'B2'],
+  min: 0,
+  max: 0.3,
+  gamma: 1.2
+};
+
+var nImgs = hlsWithData.size();
+var hlsList = hlsWithData.toList(nImgs);
+
+// --- Minimal UI to step through images ---
+var panel = ui.Panel({style: {width: '360px'}});
+panel.add(ui.Label('HLS image browser: 1 month before eventStart', {fontWeight: 'bold'}));
+
+var info = ui.Label('Move the slider to browse images…');
+panel.add(info);
+
+var slider = ui.Slider({
+  min: 0,
+  max: 1,
+  step: 1,
+  value: 0,
+  style: {stretch: 'horizontal'}
+});
+panel.add(slider);
+
+ui.root.insert(0, panel);
+
+function showImage(i) {
+  i = ee.Number(i).toInt();
+  var img = ee.Image(hlsList.get(i)).clip(geometry);
+
+  Map.layers().reset();
+  Map.addLayer(img, rgbVis, 'HLS RGB', true);
+
+  var when = ee.Date(img.get('system:time_start')).format('YYYY-MM-dd HH:mm');
+  var id = img.id();
+  var n = img.get('roi_count_B4');
+  var cloud = img.get('CLOUD_COVERAGE');
+
+  ee.String('Index: ').cat(i.format())
+    .cat(' / ').cat(nImgs.subtract(1).format())
+    .cat('\nTime (UTC): ').cat(when)
+    .cat('\nImage ID: ').cat(id)
+    .cat('\nCloud coverage (%): ').cat(ee.Number(cloud).format('%.2f'))
+    .cat('\nROI pixel count (B4): ').cat(ee.Number(n).format())
+    .evaluate(function(txt) { info.setValue(txt); });
+}
+
+// Set slider max once we know how many images exist, then show the first
+nImgs.evaluate(function(n) {
+  if (!n || n === 0) {
+    info.setValue('No images found with data in the ROI for this date range.');
+    slider.setDisabled(true);
+    return;
+  }
+  slider.setMax(n - 1);
+  slider.setValue(0, false);
+  showImage(0);
+});
+
+slider.onChange(function(val) {
+  showImage(val);
+});
+
+
+
+
+
+
+// Masking clouds
+
+// ------------------------------------------------------------
+// HLS example: show original RGB, masked RGB, and optional mask
+// ------------------------------------------------------------
+
+var geometry = ee.Geometry.Rectangle([-78.6, 17.6, -75.8, 18.7]);
+
+var eventEnd = ee.Date('2025-11-04');
+var start = eventEnd;
+var end   = eventEnd.advance(2, 'month');
+
+var cloudThresh = 30;
+
+var hls = ee.ImageCollection("NASA/HLS/HLSL30/v002")
+  .filterBounds(geometry)
+  .filterDate(start, end)
+  .filter(ee.Filter.lt('CLOUD_COVERAGE', cloudThresh))
+  .merge(
+    ee.ImageCollection("NASA/HLS/HLSS30/v002")
+      .filterBounds(geometry)
+      .filterDate(start, end)
+      .filter(ee.Filter.lt('CLOUD_COVERAGE', cloudThresh))
+  );
+
+var hlsWithData = hls
+  .map(function(img) {
+    var n = img.select('B4').reduceRegion({
+      reducer: ee.Reducer.count(),
+      geometry: geometry,
+      scale: 30,
+      bestEffort: true,
+      maxPixels: 1e8
+    }).get('B4');
+    return img.set('roi_count_B4', n);
+  })
+  .filter(ee.Filter.gt('roi_count_B4', 0));
+
+var example = ee.Image(
+  hlsWithData.sort('roi_count_B4', false).first()
+).clip(geometry);
+
+print('Example image:', example);
+print('Example image ID:', example.id());
+print('Example image date:', ee.Date(example.get('system:time_start')).format('YYYY-MM-dd HH:mm'));
+
+var fmask = example.select('Fmask');
+
+var cloudBit  = fmask.bitwiseAnd(1 << 1).neq(0);
+var adjBit    = fmask.bitwiseAnd(1 << 2).neq(0);
+var shadowBit = fmask.bitwiseAnd(1 << 3).neq(0);
+var snowBit   = fmask.bitwiseAnd(1 << 4).neq(0);
+
+var clearMask = cloudBit.not()
+  .and(adjBit.not())
+  .and(shadowBit.not())
+  .and(snowBit.not());
+
+var maskedRgb = example.updateMask(clearMask);
+var maskImage = clearMask.unmask(0);
+
+var rgbVis = {
+  bands: ['B4', 'B3', 'B2'],
+  min: 0.01,
+  max: 0.18,
+  gamma: 1.2
+};
+
+var maskVis = {
+  min: 0,
+  max: 1,
+  palette: ['red', 'lime']
+};
+
+var leftMap = ui.Map();
+var rightMap = ui.Map();
+
+leftMap.centerObject(geometry, 9);
+rightMap.centerObject(geometry, 9);
+
+// Left = original RGB
+leftMap.addLayer(example, rgbVis, 'Original RGB', true);
+
+// Right = masked RGB
+rightMap.addLayer(maskedRgb, rgbVis, 'Masked RGB', true);
+
+// Optional: also add the red/green mask, but keep it off by default
+rightMap.addLayer(maskImage, maskVis, 'Mask (red removed, green kept)', false);
+
+ui.Map.Linker([leftMap, rightMap]);
+
+leftMap.add(ui.Label('Original image', {
+  position: 'top-center',
+  fontWeight: 'bold',
+  backgroundColor: 'rgba(255,255,255,0.7)',
+  padding: '8px'
+}));
+
+rightMap.add(ui.Label('Masked image', {
+  position: 'top-center',
+  fontWeight: 'bold',
+  backgroundColor: 'rgba(255,255,255,0.7)',
+  padding: '8px'
+}));
+
+var splitPanel = ui.SplitPanel({
+  firstPanel: leftMap,
+  secondPanel: rightMap,
+  orientation: 'horizontal',
+  wipe: true
+});
+
+ui.root.widgets().reset([splitPanel]);
+
+
+// Make composite
+// ------------------------------------------------------------
+// HLS cloud masking as a self-defined function
+// Apply to all images in the 2 months before the storm
+// Reduce to a median composite
+// ------------------------------------------------------------
+
+var geometry = ee.Geometry.Rectangle([-78.6, 17.6, -75.8, 18.7]);
+
+var eventStart = ee.Date('2025-11-04');
+var start = eventStart.advance(-2, 'month');
+var end   = eventStart;
+
+print('Date window:', start, 'to', end);
+
+var cloudThresh = 30;
+
+// Select only bands common to both HLSL30 and HLSS30
+var bandsToKeep = ['B2', 'B3', 'B4', 'Fmask'];
+
+// Build merged HLS collection
+var hlsL30 = ee.ImageCollection("NASA/HLS/HLSL30/v002")
+  .filterBounds(geometry)
+  .filterDate(start, end)
+  .filter(ee.Filter.lt('CLOUD_COVERAGE', cloudThresh))
+  .select(bandsToKeep);
+
+var hlsS30 = ee.ImageCollection("NASA/HLS/HLSS30/v002")
+  .filterBounds(geometry)
+  .filterDate(start, end)
+  .filter(ee.Filter.lt('CLOUD_COVERAGE', cloudThresh))
+  .select(bandsToKeep);
+
+var hls = hlsL30.merge(hlsS30).sort('system:time_start');
+
+print('HLS images in date window:', hls.size());
+
+// Self-defined mask function using Fmask
+var maskHLSFmask = function(img) {
+  var fmask = img.select('Fmask');
+
+  var cloudBit  = fmask.bitwiseAnd(1 << 1).neq(0);
+  var adjBit    = fmask.bitwiseAnd(1 << 2).neq(0);
+  var shadowBit = fmask.bitwiseAnd(1 << 3).neq(0);
+  var snowBit   = fmask.bitwiseAnd(1 << 4).neq(0);
+
+  var clearMask = cloudBit.not()
+    .and(adjBit.not())
+    .and(shadowBit.not())
+    .and(snowBit.not());
+
+  return img.updateMask(clearMask);
+};
+
+// Apply mask function to all images
+var maskedCollection = hls.map(maskHLSFmask);
+
+print('Masked collection:', maskedCollection);
+print('Number of masked images:', maskedCollection.size());
+
+// Reduce to one clear image using median
+var medianComposite = maskedCollection.median().clip(geometry);
+
+print('Median composite:', medianComposite);
+print('Band names:', medianComposite.bandNames());
+
+// Visualisation settings
+var rgbVis = {
+  bands: ['B4', 'B3', 'B2'],
+  min: 0,
+  max: 0.3,
+  gamma: 1.2
+};
+
+Map.centerObject(geometry, 9);
+Map.layers().reset();
+Map.addLayer(medianComposite, rgbVis, 'Masked median composite');
+
+Export.image.toDrive({
+  image: medianComposite,
+  description: 'HLS_masked_median_composite_2months_before_epsg3448',
+  folder: 'GEE_exports',
+  fileNamePrefix: 'HLS_masked_median_composite_2months_before_epsg3448',
+  region: geometry,
+  scale: 30,
+  crs: 'EPSG:3448',
+  maxPixels: 1e13
+});
